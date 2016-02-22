@@ -9,15 +9,10 @@ Tk().withdraw() #don't want a full GUI, so keep root window from appearing
 
 # Create list of plate well names for labelling later
 plate_layout = []
-for i in range(24):
-	if i//6 == 0:
-		plate_layout.append('A' + str(i+1))
-	elif i//6 == 1:
-		plate_layout.append('B'+str((i%6)+1))
-	elif i//6 == 2:
-		plate_layout.append('C'+str((i%6)+1))
-	elif i//6 == 3:
-		plate_layout.append('D'+str((i%6)+1))
+rows = ['A', 'B', 'C', 'D']
+for i in range(1, 7):
+	for letter in rows:
+		plate_layout.append(letter + i) 
 
 # Create a list of strings containing the filenames
 files_to_analyze = askopenfilenames(initialdir='C:',title='Select picture files to analyze')
