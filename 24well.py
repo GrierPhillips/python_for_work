@@ -1,3 +1,5 @@
+#Given an image of a 24 well plate identify and separate each well into its own file
+
 import numpy as np
 import pandas as pd
 from PIL import Image
