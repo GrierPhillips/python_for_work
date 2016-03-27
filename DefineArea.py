@@ -1,3 +1,5 @@
+# Given an image of a well from plate analyzed by Lemnatec Scanalyzer, calculate area of pixels within boundary circle. 
+
 from PIL import Image, ImageFilter
 from tkinter import Tk
 from tkinter.filedialog import askopenfilenames
