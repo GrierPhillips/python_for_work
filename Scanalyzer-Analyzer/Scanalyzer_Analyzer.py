@@ -280,16 +280,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				code = "var wells = " +json.dumps(wellssl) + "; for (i = 0; i < wells.length; i++) { document.getElementById(wells[i]).className = 'selected';}" 
 				print(code)
 				self.frame.evaluateJavaScript(code)
-   
-    
-				'''self.button_id = []
-				for button in self.Checkbox_Group.buttons():
-					if button.objectName() in wells:
-						self.button_id.append(button.objectName())
-				for well in wells:
-					if well in self.button_id:
-						checkbox = self.findChild(QtGui.QCheckBox, well)
-						checkbox.setChecked(True)'''
 			else:
 				return
 		else: 
@@ -309,11 +299,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 			checked.append(well.get('id'))
 		for well in soup.find_all(class_ = None):
 			unchecked.append(well.get('id'))
-		'''for button in self.Checkbox_Group.buttons():
-			if button.isChecked():
-				checked.append(button.objectName())
-			else:
-				unchecked.append(button.objectName())'''
 		if 'Treatment' in self.data.columns:
 			for id in self.Id:
 				self.data.loc[(self.data['Snapshot ID Tag'] == id) & \
@@ -396,7 +381,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 		rows = ['A0', 'B0', 'C0', 'D0', 'E0', 'F0', 'G0', 'H0']
 		plate = pd.Series()
 		for row in rows:
-			for w in range(1,7):
+			for w in range(1,13):
 				series = pd.Series(row + str(w), index=[len(plate)])
 				plate = pd.concat([plate, series], ignore_index=True)
 		layout.loc[:,'Wells'] = plate
@@ -447,9 +432,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 			code = "var wells = " +json.dumps(wellssl) + "; for (i = 0; i < wells.length; i++) { document.getElementById(wells[i]).className = 'selected';}" 
 			print(code)
 			self.frame.evaluateJavaScript(code)
-			'''for well in wells:
-				checkbox = self.findChild(QtGui.QCheckBox, well)
-				checkbox.setChecked(True)'''
 			self.Save_Treatment()
 	
 	def Load_Preferences(self):
@@ -533,17 +515,10 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				for column in fluo.columns:
 					if 'ColorClassAreaAbsolut' in column:
 						fcolor_classes.append(column)
+				# Create reversed list of columns for display purposes
 				fcolor_classes_rev = fcolor_classes[::-1]
-				# Create Pivot Table of Treatments within each Snapshot ID Tag
-				'''fpivot = pd.pivot_table(
-					fluo, index=['Snapshot ID Tag', 'Treatment'], values=fcolor_classes,	\
-					aggfunc=[np.mean, np.std])'''
-				# Alternatively we will just groupby Snapshot ID and Treatment and apply 
-				# the aggregate functions mean and std. This will give the desired format 
-				# with color classes being zero indexed on the multiindex column and 
-				# the aggregate stats bing indexed at 1.
-	
-				# Calculate zfactors for FLUO
+				
+				# Calculate zfactors for FLUO, likely will not reach final version
 				fzfactors_raw = fluo.groupby(['Snapshot ID Tag', 'Treatment', \
 	       'Control']).agg(['mean', 'std'])	
 				# Calculate the difference of positive and negative control means across classes
@@ -574,11 +549,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 	   
 				fpivot = fluo.groupby(['Snapshot ID Tag', 'Treatment']).agg(['mean', 'std'])
 				
-				'''['(0-9).ColorClassAreaAbsolut', \
-					'(10-18).ColorClassAreaAbsolut', '(19-27).ColorClassAreaAbsolut', \
-					'(28-36).ColorClassAreaAbsolut', '(37-45).ColorClassAreaAbsolut', \
-					'(46-54).ColorClassAreaAbsolut', '(55-255).ColorClassAreaAbsolut']'''
-				# Create reversed list of columns for display purposes
 				'''if self.ZFactor_box.isChecked():
 					fmi = pd.MultiIndex.from_product(
 						[fcolor_classes_rev, ['mean', 'std', 'zfactor']])
@@ -586,24 +556,16 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				else:'''
 				fmi = pd.MultiIndex.from_product([fcolor_classes_rev, ['mean', 'std']])
 				
-				'''['(55-255).ColorClassAreaAbsolut', \
-					'(46-54).ColorClassAreaAbsolut', '(37-45).ColorClassAreaAbsolut', \
-					'(28-36).ColorClassAreaAbsolut', '(19-27).ColorClassAreaAbsolut', \
-					'(10-18).ColorClassAreaAbsolut', '(0-9).ColorClassAreaAbsolut']'''
 				# Reindex fpivot so that 55-255 color class is first column.
 				fpivot = fpivot.reindex_axis(fmi, 1)
-				# Create Pivot Table of treatments averaged across all plates
-				'''ftpivot = pd.pivot_table(
-					fluo, index=['Treatment'], values=fcolor_classes, \
-					aggfunc=[np.mean, np.std])'''
-				# Alternatively with groupby and agg for desired format
+				# Create pivot table by treatment
 				ftpivot = fluo.groupby(['Treatment']).agg(['mean', 'std', self.zfactor])
 				ftpivot = ftpivot.reindex_axis(fmi, 1)
 				# Create Table of Averages Only (May be Irrelevant)
-				#fluo_avg = fluo.groupby(
-					#['Snapshot ID Tag', 'Treatment']).mean()
+				'''fluo_avg = fluo.groupby(
+					['Snapshot ID Tag', 'Treatment']).mean()'''
 			
-			#Create dataframe of visible data
+			# Create dataframe of visible data
 			vis = pd.DataFrame(df[df['Writer Label'] == 'vis'])
 			if vis.size != 0:
 				vis.drop(vis.columns[pd.isnull(vis).all()], axis=1, inplace=True) 
@@ -617,12 +579,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				for color in vcolor_classes:
 					if 'Agar' in color:
 						vcolor_classes.remove(color)
-	   
-				# Pivot Table of Vis		
-				'''vpivot = pd.pivot_table(
-					vis, index=['Snapshot ID Tag', 'Treatment'], values=vcolor_classes, \
-					aggfunc=[np.mean, np.std])'''
-# Alternative format
+				# Create pivot table of visible color data
 				vis2 = vis.copy()
 				vis2[vcolor_classes[0]] = \
 					vis2['ROI Object Sum Area']/vis2['ROI Area'].max()*100
@@ -636,7 +593,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					vpivot = vis.groupby(['Snapshot ID Tag', 'Treatment'])\
 						.agg(['mean', 'std'])
 					vtpivot = vis.groupby(['Treatment']).agg(['mean', 'std'])
-
 				try:
 					if self.Neg_Control_Bool in globals():
 						count = 0
@@ -651,7 +607,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 	    							else:
 	    								mil_treat.insert(count2, i)
 	    							count += 1
-		
 						vni = pd.MultiIndex.from_arrays(
 	    						[vpivot.index.get_level_values(0).tolist(), \
 								mil_treat])
@@ -659,8 +614,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				except AttributeError:
 					pass
 
-
-						
 	# Calculate zfactors for Vis
 				vzfactors_raw = vis.groupby(['Snapshot ID Tag', 'Treatment',\
 	       'Control']).agg(['mean', 'std'])	
@@ -702,24 +655,21 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					vmi = pd.MultiIndex.from_product(
 						[vcolor_classes, ['mean', 'std']])
 				vpivot = vpivot.reindex_axis(vmi, 1)
-				
-				'''vtpivot = pd.pivot_table(
-					vis, index=['Treatment'], values=vcolor_classes, \
-					aggfunc=[np.mean, np.std])'''
+	# Create pivot table by treatment
 				vtpivot = vtpivot.reindex_axis(vmi, 1)
-			
+	# Create table of averages (May be irrelevant)		
 	# vis_avg = vis.groupby(['Snapshot ID Tag', 'Treatment']).mean()
 			
 			writer = pd.ExcelWriter(
 				self.aopath + r'/{}.xlsx'.format(fname), engine='xlsxwriter')
 			if fluo.size != 0:
 				fluo.to_excel(writer, 'FLUO', index=False)
-	# fzfactors.to_excel(writer, 'FLUO Z-Factors')
+				# fzfactors.to_excel(writer, 'FLUO Z-Factors')
 				fpivot.to_excel(writer, 'FLUO Treatment by Plate') 
 				ftpivot.to_excel(writer, 'FLUO by Treatment') 
 			if vis.size != 0:
 				vis.to_excel(writer, 'VIS', index=False)
-	# vzfactors.to_excel(writer, 'VIS Z-Factors')
+				# vzfactors.to_excel(writer, 'VIS Z-Factors')
 				vpivot.to_excel(writer, 'VIS Treatment by Plate')
 				vtpivot.to_excel(writer, 'VIS by Treatment')
 
@@ -827,7 +777,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				vtpivot_length = len(vtpivot) + 3
 				
 				k = 0
-	
 				for column in vtcolumns:
 					vis_col_name = re.search('.+?(?=\.)', vis_col_names[k])
 					chart3.add_series({
@@ -873,7 +822,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				worksheet = writer.sheets['FLUO by Treatment']
 				worksheet.insert_chart(
 					'C{}'.format(ftpivot_length + 2), chart4)
-				
 				writer.save()
 			
 		self.statusBar().showMessage("Analysis is Complete!")
