@@ -5,4 +5,5 @@ Unfortunately not everything that I develop for work can be posted online. I'll 
 
 
 **Highlight**
+
 Please explore the scanalyzer analyzer script. It is the culmination of efforts to streamline the analysis of data collected from the Lemnatec Scanalyzer. 
