@@ -3,4 +3,6 @@ Python scripts for various purposes in data manipulation and analysis
 
 Unfortunately not everything that I develop for work can be posted online. I'll add what management doesn't care about or approves.
 
-Potential to add code for application used to analyze and produce reports from Lemnatec Scanalyzer data output. Currently in limbo due to indecision of legal department on copywrite or open source approach. 
+
+**Highlight**
+Please explore the scanalyzer analyzer script. It is the culmination of efforts to streamline the analysis of data collected from the Lemnatec Scanalyzer. 
