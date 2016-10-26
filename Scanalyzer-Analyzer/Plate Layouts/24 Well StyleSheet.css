@@ -1,0 +1,21 @@
+﻿.plate {
+    border: 2px solid black;
+    border-spacing: 3px;
+    border-collapse: separate;    
+}
+
+table {
+  padding-right: 3px;
+  padding-left: 3px;
+}
+.plate td{
+  border: 2px solid black;
+  border-radius: 50%;
+  height: 72px;
+  width: 72px;
+  text-align: center;
+}
+
+.selected {
+  background: lightgray;
+}
