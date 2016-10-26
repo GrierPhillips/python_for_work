@@ -2,11 +2,11 @@
 """
 Scanalyzer Data Analyzer
 
-Allows user to select multiple output files from the Scanalyzer, select 
-individual plates within files, and assign layouts of treatments to these 
-plates. These settings are then used for processing the output files and 
-creating a clean summary file of the raw data and simple statistics for 
-each treatment within a plate. 
+Allows user to select multiple output files from the Scanalyzer, select
+individual plates within files, and assign layouts of treatments to these
+plates. These settings are then used for processing the output files and
+creating a clean summary file of the raw data and simple statistics for
+each treatment within a plate.
 
 Output is as an Excel file in the same directory as the original file sharing
 the same name except with a .xlsx extension
@@ -20,9 +20,9 @@ __version__ = "0.1.0"
 import sys
 from string import ascii_uppercase
 from PyQt4 import QtCore, QtGui
-from Maini_Window import Ui_MainWindow
-from Layout_Loader import Ui_Layout_Loader
-from Preferences import Ui_Preferences
+from app3 import Ui_MainWindow
+from layout_loader import Ui_Layout_Loader
+from preferences import Ui_Preferences
 import pandas as pd
 import numpy as np
 import os
@@ -57,22 +57,22 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 		self.Treatments_List.itemChanged.connect(self.Save_Treatment)
 		self.Set_Negative_Control.clicked.connect(self.Get_Negative_Control)
 		self.Set_Positive_Control.clicked.connect(self.Get_Positive_Control)
-                 	
+
 
 
 	def Choose_File(self):
 		if self.File_Selector_Box.count() == 0:
 			self.slpath = QtGui.QFileDialog.getOpenFileNames(
-				self, 'Choose Scanalyzer File', '', "csv (*.csv)", 
+				self, 'Choose Scanalyzer File', '', "csv (*.csv)",
 				QtGui.QFileDialog.DontUseNativeDialog)
-			if self.slpath: 
+			if self.slpath:
 				self.statusBar().showMessage("Scanalyzer CSV valid.")
 				self.File_Selector_Box.addItems(self.slpath)
 				self.Import_Data()
 				self.Select_File()
-		else:	
+		else:
 			self.additional_files = QtGui.QFileDialog.getOpenFileNames(
-				self, 'Choose Scanalyzer File', '', "csv (*.csv)", 
+				self, 'Choose Scanalyzer File', '', "csv (*.csv)",
 				QtGui.QFileDialog.DontUseNativeDialog)
 			duplicates = []
 			for file in self.additional_files:
@@ -85,12 +85,12 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				self.Error.showMessage(
 					'A file with that name has already been loaded.')
 			self.slpath.extend(self.additional_files)
-			if self.slpath: 
+			if self.slpath:
 				self.statusBar().showMessage("Scanalyzer CSV's are Valid")
 				self.File_Selector_Box.clear()
 				self.Update_Labels()
 				self.Import_Data()
-	
+
 	def Append_Data(self, file):
 		df = pd.read_csv(file, sep=None, engine='python')
 		drop_cols = ['Row No','Results','Partial Analysis',\
@@ -108,26 +108,26 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 		df['Snapshot ID Tag'] = df['Snapshot ID Tag'].astype(str)
 		self.data = self.data.append(df, ignore_index=True)
 		self.data['Control'] = ' '
-	
+
 	def Import_Data(self):
 		#Get Items in filebox if not adding additonal files
 		if not 'self.additonal_files' in globals():
 			self.filenames = []
 			for file in list(range(self.File_Selector_Box.count())):
 				self.filenames.append(self.File_Selector_Box.itemText(file))
-			#import each file into one dataframe, adding filename column 
+			#import each file into one dataframe, adding filename column
 			self.data = pd.DataFrame()
 			for file in self.filenames:
 				self.Append_Data(file)
 		else:
 			for file in self.additional_files:
 				self.Append_Data(file)
-	
+
 	def Update_Labels(self):
 		if self.slpath:
 			self.File_Selector_Box.addItems(self.slpath)
 			self.Select_File()
-					
+
 	def Select_File(self):
 		self.Id_List.clear()
 		self.Treatments_List.clear()
@@ -138,14 +138,14 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
       self.current_base].unique()
 		for id in ids:
 			self.Id_List.addItem(str(id))
-	
+
 	def Get_Id(self):
 		self.Id_item = self.Id_List.selectedItems()
 		self.Id = []
 		for i in self.Id_item:
 			self.Id.append(str(self.Id_List.item(self.Id_List.row(i)).text()))
 		return self.Id
-		
+
 	def Select_Id(self):
 		self.Treatments_List.clear()
 		self.Reset_Checkboxes()
@@ -160,7 +160,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				for s in treatment:
 					if s not in treatments_array:
 						treatments_array.append(s)
-				if '' in treatments_array:	
+				if '' in treatments_array:
 					treatments_array.remove('')
 			self.Treatments_List.addItems(treatments_array)
 			for treatment in range(len(treatments_array)):
@@ -174,12 +174,12 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					self.Treatments_List.item(treatment).setBackground(QtGui.QBrush(QtCore.Qt.red, QtCore.Qt.SolidPattern))
 		else:
 			return
-			
+
 	def Duplicate_Treatment_Error(self):
 		self.Error = QtGui.QErrorMessage(self)
 		self.Error.setWindowTitle('Error: Duplicate treatment!')
 		self.Error.showMessage('A treatment with that name already exists.')
-	
+
 	def Create_Treatment(self):
 		self.Treatment_Name = QtGui.QInputDialog.getText(
 			self, 'Enter Treatment Name', 'Treatment Name')
@@ -200,7 +200,20 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 			item = item.setFlags(QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled \
 													 | QtCore.Qt.ItemIsSelectable)
 			#self.Reset_Checkboxes()
-	
+
+	def make_plate():
+		plate = pd.Series()
+		rows = ['A0', 'B0', 'C0', 'D0', 'E0', 'F0', 'G0', 'H0']
+		for row in rows:
+			for w in range(1,13):
+				if w < 10:
+					series = pd.Series(row + str(w), index=[len(plate)])
+					plate = pd.concat([plate, series], ignore_index=True)
+				else:
+					series = pd.Series(row[:1] + str(w), index=[len(plate)])
+					plate = pd.concat([plate, series], ignore_index=True)
+		return plate
+
 	def New_Treatment(self):
 		# Alert user that treatment will be applied to all ID's
 		self.Get_Id()
@@ -215,18 +228,13 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
 			self.Message.setDefaultButton(QtGui.QMessageBox.Ok)
 			self.Message.setIcon(QtGui.QMessageBox.Information)
-			result = self.Message.exec()
+			result = self.Message.execfile()
 			if result == QtGui.QMessageBox.Ok:
 				self.data = pd.DataFrame()
-				rows = ['A0', 'B0', 'C0', 'D0']
-				plate = pd.Series()
-				for row in rows:
-					for w in range(1,7):
-						series = pd.Series(row + str(w), index=[len(plate)])
-						plate = pd.concat([plate, series], ignore_index=True)
+				plate = make_plate()
 				self.data.loc[:,'ROI Label'] = plate
 				self.Create_Treatment()
-			else: 
+			else:
 				return
 		elif self.Id_List.currentItem() == None:
 			self.Message = QtGui.QMessageBox(self)
@@ -239,32 +247,32 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
 			self.Message.setDefaultButton(QtGui.QMessageBox.Ok)
 			self.Message.setIcon(QtGui.QMessageBox.Information)
-			result = self.Message.exec()
+			result = self.Message.execfile()
 			if result == QtGui.QMessageBox.Ok:
 				for i in list(range(self.Id_List.count())):
 					self.Id_List.item(i).setSelected(True)
 				self.Get_Id()
-				self.Create_Treatment()			
+				self.Create_Treatment()
 			else:
 				return
 		else:
 			self.Create_Treatment()
-				
+
 	def Reset_Checkboxes(self):
 		#code = "function resetCheckBoxes() {$('.selected').removeClass('selected');};"
 		self.frame = self.webView.page().mainFrame()
 		self.frame.evaluateJavaScript("resetCheckBoxes()")
-	
+
 	def Get_Current_Treatment(self):
 		Current_Treatment_Item = self.Treatments_List.currentItem()
 		self.Current_Treatment = Current_Treatment_Item.text()
-		
+
 	def Select_Treatment(self):
 		self.Reset_Checkboxes()
 		try:
 			self.Get_Current_Treatment()
 		except AttributeError:
-			return	
+			return
 		if 'Treatment' in self.data.columns:
 			if 'Snapshot ID Tag' in self.data.columns:
 				wells = self.data['ROI Label'][(self.data['Snapshot ID Tag'] == \
@@ -277,14 +285,24 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 						del item
 					else:
 						wellssl.append(str(item))
-				code = "var wells = " +json.dumps(wellssl) + "; for (i = 0; i < wells.length; i++) { document.getElementById(wells[i]).className = 'selected';}" 
+				code = "var wells = " +json.dumps(wellssl) + "; for (i = 0; i < wells.length; i++) { document.getElementById(wells[i]).className = 'selected';}"
 				print(code)
 				self.frame.evaluateJavaScript(code)
+
+
+				'''self.button_id = []
+				for button in self.Checkbox_Group.buttons():
+					if button.objectName() in wells:
+						self.button_id.append(button.objectName())
+				for well in wells:
+					if well in self.button_id:
+						checkbox = self.findChild(QtGui.QCheckBox, well)
+						checkbox.setChecked(True)'''
 			else:
 				return
-		else: 
+		else:
 			return
-			
+
 	def Save_Treatment(self):
 		try:
 			self.Get_Current_Treatment()
@@ -299,6 +317,11 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 			checked.append(well.get('id'))
 		for well in soup.find_all(class_ = None):
 			unchecked.append(well.get('id'))
+		'''for button in self.Checkbox_Group.buttons():
+			if button.isChecked():
+				checked.append(button.objectName())
+			else:
+				unchecked.append(button.objectName())'''
 		if 'Treatment' in self.data.columns:
 			for id in self.Id:
 				self.data.loc[(self.data['Snapshot ID Tag'] == id) & \
@@ -318,8 +341,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                          (self.data['Snapshot ID Tag'] == id) & \
                          (self.data['ROI Label'] == check),  'Treatment'] = \
                          self.Current_Treatment
-		
-			
+
+
 	def Delete_Treatment(self):
 		self.Get_Current_Treatment()
 		self.Reset_Checkboxes()
@@ -329,7 +352,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
        self.Current_Treatment[0]), 'Treatment'] = ''
 		self.Treatments_List.clear()
 		self.Select_Id()
-		
+
 	def Edit_Treatment(self):
          self.Treatments_List.editItem(self.Treatments_List.currentItem())
 
@@ -341,7 +364,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
          item = self.Treatments_List.currentItem()
          item.setBackground(QtGui.QBrush(QtCore.Qt.green, QtCore.Qt.SolidPattern))
          self.Pos_Control_Bool = True
-             
+
 	def Get_Negative_Control(self):
          for id in self.Id:
              self.data.loc[(self.data.Filename == self.current_base) & \
@@ -350,12 +373,12 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
          item = self.Treatments_List.currentItem()
          item.setBackground(QtGui.QBrush(QtCore.Qt.red, QtCore.Qt.SolidPattern))
          self.Neg_Control_Bool = True
-        
+
 	def Reset_Plate(self):
 		self.Treatments_List.clear()
 		self.Reset_Checkboxes()
 		del self.data['Treatment']
-		
+
 	def Save_Layout(self):
 		self.lfpath = r'C:\Scanalyzer Analyzer\layouts.h5'
 		#Get Layout name
@@ -378,12 +401,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				(self.data['Snapshot ID Tag'] == self.Id[0])]
 			treat_well_pairs[treatment] = wells.unique()
 		layout = pd.DataFrame()
-		rows = ['A0', 'B0', 'C0', 'D0', 'E0', 'F0', 'G0', 'H0']
-		plate = pd.Series()
-		for row in rows:
-			for w in range(1,13):
-				series = pd.Series(row + str(w), index=[len(plate)])
-				plate = pd.concat([plate, series], ignore_index=True)
+		plate = make_plate()
 		layout.loc[:,'Wells'] = plate
 		layout['Treatment'] = ''
 		for treatment in treat_well_pairs:
@@ -408,7 +426,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 			store = pd.HDFStore(self.lfpath)
 			store['layout/' + self.layout_name] = layout
 			store.close()
-	
+
 	def Layout_From_hdf(self):
 		layout = self.dialog.Select_Layout()
 		treatments = layout['Treatment'].unique()
@@ -420,7 +438,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 			self.Treatments_List.addItem(treatment)
 			self.Treatments_List.setCurrentItem(self.Treatments_List.item(i))
 			i += 1
-			
+
 			wells = layout['Wells'][layout.Treatment == treatment]
 			wl = wells.tolist()
 			wellssl = []
@@ -429,17 +447,20 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					del item
 				else:
 					wellssl.append(str(item))
-			code = "var wells = " +json.dumps(wellssl) + "; for (i = 0; i < wells.length; i++) { document.getElementById(wells[i]).className = 'selected';}" 
+			code = "var wells = " +json.dumps(wellssl) + "; for (i = 0; i < wells.length; i++) { document.getElementById(wells[i]).className = 'selected';}"
 			print(code)
 			self.frame.evaluateJavaScript(code)
+			'''for well in wells:
+				checkbox = self.findChild(QtGui.QCheckBox, well)
+				checkbox.setChecked(True)'''
 			self.Save_Treatment()
-	
+
 	def Load_Preferences(self):
 		self.set_preferences = Preferences(parent=self)
 		if self.Set_Negative_Control.isVisible():
 			self.set_preferences.Controls_Toggle.setChecked(True)
 		self.set_preferences.show()
-  
+
 		if self.set_preferences.exec_() == QtGui.QDialog.Accepted:
 			if self.set_preferences.Plate_List.currentItem() != None:
 				plate = self.set_preferences.Select_Plate()
@@ -454,7 +475,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 	def Load_Layouts(self):
 		self.dialog = LayoutLoader(parent=self)
 		self.dialog.show()
-		
+
 		if self.dialog.exec_() == QtGui.QDialog.Accepted:
 			if self.Id_List.currentItem() == None:
 				self.Message = QtGui.QMessageBox(self)
@@ -467,12 +488,12 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
 				self.Message.setDefaultButton(QtGui.QMessageBox.Ok)
 				self.Message.setIcon(QtGui.QMessageBox.Information)
-				result = self.Message.exec()
+				result = self.Message.execfile()
 				if result == QtGui.QMessageBox.Ok:
 					# Select all Snapshot id's and initialize self.Id
 					for i in list(range(self.Id_List.count())):
 						self.Id_List.item(i).setSelected(True)
-					self.Get_Id()	
+					self.Get_Id()
 					# load layout
 					self.Layout_From_hdf()
 					self.dialog.store.close()
@@ -480,17 +501,17 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				self.Get_Id()
 				#self.Reset_Plate()
 				self.Layout_From_hdf()
-				self.dialog.store.close()					
-	
+				self.dialog.store.close()
+
 	def zfactor(self, x):
 		m = x.mean()
 		if m == 0:
 			z = 1
-			return z		
+			return z
 		s = x.std()
 		z = 1 - ((3 * s) /  m)
 		return z
-	
+
 	def Analyze(self):
 		zfactorbool = False
 		self.aopath = r'C:/Scanalyzer Analyzer/Outputs'
@@ -504,7 +525,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 		for fname in self.data.Filename.unique():
 			df = self.data[self.data.Filename == fname]
 			df.loc[:, 'Writer Label'] = df['Writer Label'].astype(object)
-			df.loc[:, 'Writer Label'] = df['Writer Label'].str.lower()			
+			df.loc[:, 'Writer Label'] = df['Writer Label'].str.lower()
 			#Create dataframe of fluorescent data
 			fluo = pd.DataFrame(df[df['Writer Label'] == 'fluo'])
 			if fluo.size != 0:
@@ -515,12 +536,19 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				for column in fluo.columns:
 					if 'ColorClassAreaAbsolut' in column:
 						fcolor_classes.append(column)
-				# Create reversed list of columns for display purposes
 				fcolor_classes_rev = fcolor_classes[::-1]
-				
-				# Calculate zfactors for FLUO, likely will not reach final version
+				# Create Pivot Table of Treatments within each Snapshot ID Tag
+				'''fpivot = pd.pivot_table(
+					fluo, index=['Snapshot ID Tag', 'Treatment'], values=fcolor_classes,	\
+					aggfunc=[np.mean, np.std])'''
+				# Alternatively we will just groupby Snapshot ID and Treatment and apply
+				# the aggregate functions mean and std. This will give the desired format
+				# with color classes being zero indexed on the multiindex column and
+				# the aggregate stats bing indexed at 1.
+
+				# Calculate zfactors for FLUO
 				fzfactors_raw = fluo.groupby(['Snapshot ID Tag', 'Treatment', \
-	       'Control']).agg(['mean', 'std'])	
+	       'Control']).agg(['mean', 'std'])
 				# Calculate the difference of positive and negative control means across classes
 				fzfactors_raw.columns.names = ['class', 'stat']
 				fzmeans = fzfactors_raw.xs('mean', level='stat', axis=1)
@@ -546,40 +574,58 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				fzfactorlive = fzfactor.iloc[:, :2]
 				fzfactordead = fzfactor.iloc[:, [0,len(fcolor_classes)]]
 				fzfactors = pd.concat([fzfactorlive, fzfactordead.iloc[:, 1]], axis=1)
-	   
+
 				fpivot = fluo.groupby(['Snapshot ID Tag', 'Treatment']).agg(['mean', 'std'])
-				
+
+				'''['(0-9).ColorClassAreaAbsolut', \
+					'(10-18).ColorClassAreaAbsolut', '(19-27).ColorClassAreaAbsolut', \
+					'(28-36).ColorClassAreaAbsolut', '(37-45).ColorClassAreaAbsolut', \
+					'(46-54).ColorClassAreaAbsolut', '(55-255).ColorClassAreaAbsolut']'''
+				# Create reversed list of columns for display purposes
 				'''if self.ZFactor_box.isChecked():
 					fmi = pd.MultiIndex.from_product(
 						[fcolor_classes_rev, ['mean', 'std', 'zfactor']])
-					zfactorbool = True				
+					zfactorbool = True
 				else:'''
 				fmi = pd.MultiIndex.from_product([fcolor_classes_rev, ['mean', 'std']])
-				
+
+				'''['(55-255).ColorClassAreaAbsolut', \
+					'(46-54).ColorClassAreaAbsolut', '(37-45).ColorClassAreaAbsolut', \
+					'(28-36).ColorClassAreaAbsolut', '(19-27).ColorClassAreaAbsolut', \
+					'(10-18).ColorClassAreaAbsolut', '(0-9).ColorClassAreaAbsolut']'''
 				# Reindex fpivot so that 55-255 color class is first column.
 				fpivot = fpivot.reindex_axis(fmi, 1)
-				# Create pivot table by treatment
+				# Create Pivot Table of treatments averaged across all plates
+				'''ftpivot = pd.pivot_table(
+					fluo, index=['Treatment'], values=fcolor_classes, \
+					aggfunc=[np.mean, np.std])'''
+				# Alternatively with groupby and agg for desired format
 				ftpivot = fluo.groupby(['Treatment']).agg(['mean', 'std', self.zfactor])
 				ftpivot = ftpivot.reindex_axis(fmi, 1)
 				# Create Table of Averages Only (May be Irrelevant)
-				'''fluo_avg = fluo.groupby(
-					['Snapshot ID Tag', 'Treatment']).mean()'''
-			
-			# Create dataframe of visible data
+				#fluo_avg = fluo.groupby(
+					#['Snapshot ID Tag', 'Treatment']).mean()
+
+			#Create dataframe of visible data
 			vis = pd.DataFrame(df[df['Writer Label'] == 'vis'])
 			if vis.size != 0:
-				vis.drop(vis.columns[pd.isnull(vis).all()], axis=1, inplace=True) 
-				
+				vis.drop(vis.columns[pd.isnull(vis).all()], axis=1, inplace=True)
+
 				# make list of visible color class names
 				vcolor_classes = []
 				for column in vis.columns:
 					if 'ColorClassAreaAbsolut' in column:
 						vcolor_classes.append(column)
-				
+
 				for color in vcolor_classes:
 					if 'Agar' in color:
 						vcolor_classes.remove(color)
-				# Create pivot table of visible color data
+
+				# Pivot Table of Vis
+				'''vpivot = pd.pivot_table(
+					vis, index=['Snapshot ID Tag', 'Treatment'], values=vcolor_classes, \
+					aggfunc=[np.mean, np.std])'''
+# Alternative format
 				vis2 = vis.copy()
 				vis2[vcolor_classes[0]] = \
 					vis2['ROI Object Sum Area']/vis2['ROI Area'].max()*100
@@ -593,6 +639,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					vpivot = vis.groupby(['Snapshot ID Tag', 'Treatment'])\
 						.agg(['mean', 'std'])
 					vtpivot = vis.groupby(['Treatment']).agg(['mean', 'std'])
+
 				try:
 					if self.Neg_Control_Bool in globals():
 						count = 0
@@ -607,6 +654,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 	    							else:
 	    								mil_treat.insert(count2, i)
 	    							count += 1
+
 						vni = pd.MultiIndex.from_arrays(
 	    						[vpivot.index.get_level_values(0).tolist(), \
 								mil_treat])
@@ -614,9 +662,11 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				except AttributeError:
 					pass
 
+
+
 	# Calculate zfactors for Vis
 				vzfactors_raw = vis.groupby(['Snapshot ID Tag', 'Treatment',\
-	       'Control']).agg(['mean', 'std'])	
+	       'Control']).agg(['mean', 'std'])
 	# Calculate the difference of positive and negative control means across classes
 				vzfactors_raw.columns.names = ['class', 'stat']
 				vzmeans = vzfactors_raw.xs('mean', level='stat', axis=1)
@@ -646,7 +696,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				vzfactorlive = vzfactor.iloc[:, :2]
 				vzfactordead = vzfactor.iloc[:, [0,len(vcolor_classes)]]
 				vzfactors = pd.concat([vzfactorlive, vzfactordead.iloc[:, 1]], axis=1)
-   
+
 	# Create multiindex orded by desired color class order on garph
 				if zfactorbool:
 					vmi = pd.MultiIndex.from_product(
@@ -655,21 +705,24 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					vmi = pd.MultiIndex.from_product(
 						[vcolor_classes, ['mean', 'std']])
 				vpivot = vpivot.reindex_axis(vmi, 1)
-	# Create pivot table by treatment
+
+				'''vtpivot = pd.pivot_table(
+					vis, index=['Treatment'], values=vcolor_classes, \
+					aggfunc=[np.mean, np.std])'''
 				vtpivot = vtpivot.reindex_axis(vmi, 1)
-	# Create table of averages (May be irrelevant)		
+
 	# vis_avg = vis.groupby(['Snapshot ID Tag', 'Treatment']).mean()
-			
+
 			writer = pd.ExcelWriter(
 				self.aopath + r'/{}.xlsx'.format(fname), engine='xlsxwriter')
 			if fluo.size != 0:
 				fluo.to_excel(writer, 'FLUO', index=False)
-				# fzfactors.to_excel(writer, 'FLUO Z-Factors')
-				fpivot.to_excel(writer, 'FLUO Treatment by Plate') 
-				ftpivot.to_excel(writer, 'FLUO by Treatment') 
+	# fzfactors.to_excel(writer, 'FLUO Z-Factors')
+				fpivot.to_excel(writer, 'FLUO Treatment by Plate')
+				ftpivot.to_excel(writer, 'FLUO by Treatment')
 			if vis.size != 0:
 				vis.to_excel(writer, 'VIS', index=False)
-				# vzfactors.to_excel(writer, 'VIS Z-Factors')
+	# vzfactors.to_excel(writer, 'VIS Z-Factors')
 				vpivot.to_excel(writer, 'VIS Treatment by Plate')
 				vtpivot.to_excel(writer, 'VIS by Treatment')
 
@@ -686,9 +739,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					vtcolumns = ascii_uppercase[1:1 + 3 * len(\
 						vcolor_classes):3]
 			else:
-				if fluo.size != 0:	
+				if fluo.size != 0:
 					fcolumns = ascii_uppercase[2:2 + 2 * len(\
-						fcolor_classes):2] 
+						fcolor_classes):2]
 					ftcolumns = ascii_uppercase[1:1 + 2 * len(\
 						fcolor_classes):2]
 				if vis.size != 0:
@@ -696,13 +749,13 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 						vcolor_classes):2]
 					vtcolumns = ascii_uppercase[1:1 + 2 * len(\
 						vcolor_classes):2]
-    
+
 	# Create FLUO Pivot graph
 			if fluo.size != 0:
 				chart1 = workbook.add_chart({
 					'type': 'column', 'subtype': 'percent_stacked'})
-				fpivot_length = len(fpivot) + 3 
-				
+				fpivot_length = len(fpivot) + 3
+
 				i = 0
 				fluo_col_names = fpivot.columns.get_level_values(0).unique()
 				if len(fcolor_classes) == 2:
@@ -723,13 +776,13 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					i += 1
 				chart1.set_size({'width': 850, 'height': 400})
 				chart1.set_title({
-					'name': "Fluorescent Class Area by Plate", 
+					'name': "Fluorescent Class Area by Plate",
 					'overlay': False})
 				worksheet = writer.sheets['FLUO Treatment by Plate']
 				worksheet.insert_chart('C{}'.format(fpivot_length + 2), \
 					chart1)
 
-			if vis.size != 0:			
+			if vis.size != 0:
 				# Create VIS Treatment by Plate Graph
 				if len(vcolor_classes) == 1:
 					vcolors = ['#5BA028']
@@ -746,7 +799,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				elif len(vcolor_classes) > 2:
 					vcolors = ['#B87E3E', '#6A4924', '#5BA028', '#E7E200']
 				j = 0
-				
+
 				for column in vcolumns:
 					vis_col_name = re.search('.+?(?=\.)', vis_col_names[j])
 					chart2.add_series({
@@ -765,7 +818,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				worksheet.insert_chart(
 					'C{}'.format(vpivot_length + 2), chart2)
 
-			if vis.size != 0:				
+			if vis.size != 0:
 				if len(vcolor_classes) == 1:
 					vcolors = ['#5BA028']
 					chart3 = workbook.add_chart({'type': 'column'})
@@ -775,8 +828,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					chart3 = workbook.add_chart({
 					'type': 'column', 'subtype': 'percent_stacked'})
 				vtpivot_length = len(vtpivot) + 3
-				
+
 				k = 0
+
 				for column in vtcolumns:
 					vis_col_name = re.search('.+?(?=\.)', vis_col_names[k])
 					chart3.add_series({
@@ -791,17 +845,17 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					k += 1
 				chart3.set_size({'width': 550, 'height': 400})
 				chart3.set_title({
-					'name': "Visible Class Area by Treatment", 
+					'name': "Visible Class Area by Treatment",
 					'overlay': False})
 				worksheet = writer.sheets['VIS by Treatment']
 				worksheet.insert_chart(
 					'C{}'.format(vtpivot_length + 2), chart3)
 
-			if fluo.size != 0:				
+			if fluo.size != 0:
 				chart4 = workbook.add_chart({
 				'type': 'column', 'subtype': 'percent_stacked'})
 				ftpivot_length = len(ftpivot) + 3
-	
+
 				l = 0
 				for column in ftcolumns:
 					fluo_col_name = re.search('\(.+\)', fluo_col_names[l])
@@ -817,13 +871,14 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 					l += 1
 				chart4.set_size({'width': 550, 'height': 400})
 				chart4.set_title({
-					'name': "Fluorescent Class Area by Treatment", 
+					'name': "Fluorescent Class Area by Treatment",
 					'overlay': False})
 				worksheet = writer.sheets['FLUO by Treatment']
 				worksheet.insert_chart(
 					'C{}'.format(ftpivot_length + 2), chart4)
+
 				writer.save()
-			
+
 		self.statusBar().showMessage("Analysis is Complete!")
 		self.Message = QtGui.QMessageBox(self)
 		self.Message.setText('<b>Analysis is Complete!</b>')
@@ -834,7 +889,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 		self.Message.setStandardButtons(QtGui.QMessageBox.Ok)
 		self.Message.setDefaultButton(QtGui.QMessageBox.Ok)
 		self.Message.setIcon(QtGui.QMessageBox.Information)
-		result = self.Message.exec()
+		result = self.Message.execfile()
 		if result == QtGui.QMessageBox.Ok:
 			self.File_Selector_Box.clear()
 			self.Id_List.clear()
@@ -842,7 +897,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 			self.Reset_Checkboxes()
 		else:
 			return
-   
+
 class LayoutLoader(QtGui.QDialog, Ui_Layout_Loader):
 	def __init__(self, parent=None):
 		super(LayoutLoader, self).__init__(parent)
@@ -850,15 +905,15 @@ class LayoutLoader(QtGui.QDialog, Ui_Layout_Loader):
 		self.lfpath = r'C:\Scanalyzer Analyzer\layouts.h5'
 		self.Load_hdf()
 		self.Layouts_List.clicked.connect(self.Select_Layout)
-		self.Change_Layout_Btn.clicked.connect(self.Change_Path)		
-		
+		self.Change_Layout_Btn.clicked.connect(self.Change_Path)
+
 	def Load_hdf(self):
 		self.store = pd.HDFStore(self.lfpath)
 		layouts = self.store.keys()
 		for layout in layouts:
 			match = re.search('(?<=/layout/)\w+', layout)
 			self.Layouts_List.addItem(match.group(0))
-	
+
 	def Select_Layout(self):
 		if self.Layouts_List.count() < 1:
 			return
@@ -868,7 +923,7 @@ class LayoutLoader(QtGui.QDialog, Ui_Layout_Loader):
 			self.layouts = self.store.keys()
 			df = self.store['/layout/' + self.layout]
 		return df
-	
+
 	def Change_Path(self):
 		self.lfpath = QtGui.QFileDialog.getOpenFileNames(
 			self, 'Choose Layouts File', '', "hdf (*.h5)")
@@ -878,7 +933,7 @@ class Preferences(QtGui.QDialog, Ui_Preferences):
 		super(Preferences, self).__init__(parent)
 		self.setupUi(self)
 		self.Get_Plate_Names()
-  
+
 	def Get_Plate_Names(self):
 		path = sys._MEIPASS + '/'
 		files = os.listdir(path)
@@ -896,10 +951,9 @@ class Preferences(QtGui.QDialog, Ui_Preferences):
 		if self.Controls_Toggle.isChecked():
 			MainWindow.Set_Negative_Control.show()
 			MainWindow.Set_Positive_Control.show()
- 
+
 if __name__ == "__main__":
 	app = QtGui.QApplication(sys.argv)
 	frame = MainWindow()
 	frame.show()
 	app.exec_()
- 
