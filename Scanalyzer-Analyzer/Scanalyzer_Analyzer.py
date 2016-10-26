@@ -231,7 +231,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 			result = self.Message.execfile()
 			if result == QtGui.QMessageBox.Ok:
 				self.data = pd.DataFrame()
-				plate = make_plate()
+				plate = self.make_plate()
 				self.data.loc[:,'ROI Label'] = plate
 				self.Create_Treatment()
 			else:
@@ -401,7 +401,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 				(self.data['Snapshot ID Tag'] == self.Id[0])]
 			treat_well_pairs[treatment] = wells.unique()
 		layout = pd.DataFrame()
-		plate = make_plate()
+		plate = self.make_plate()
 		layout.loc[:,'Wells'] = plate
 		layout['Treatment'] = ''
 		for treatment in treat_well_pairs:
