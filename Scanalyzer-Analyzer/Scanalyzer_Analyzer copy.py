@@ -39,8 +39,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 		self.Set_Negative_Control.hide()
 		self.Set_Positive_Control.hide()
 		self.webView.load(
-			QtCore.QUrl.fromLocalFile(sys._MEIPASS + \
-			'/24 Well.html'))
+			QtCore.QUrl.fromLocalFile(QtCore.QDir.currentPath() + \
+			'/Plate Layouts/24 Well.html'))
 		self.File_Selector_Box.activated.connect(self.Select_File)
 		self.actionOpen_Files.triggered.connect(self.Choose_File)
 		self.actionPreferences.triggered.connect(self.Load_Preferences)
@@ -311,7 +311,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 		checked = []
 		unchecked = []
 		#frame.evaluateJavaScript('saveTreatment()')
-		soup = BeautifulSoup(self.frame.toHtml().encode('utf-8'))
+		soup = BeautifulSoup(self.frame.toHtml().encode('utf-8'), 'html.parser')
 		print(soup.find_all(class_ = 'selected'))
 		for well in soup.find_all(class_ = 'selected'):
 			checked.append(well.get('id'))
@@ -464,7 +464,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 		if self.set_preferences.exec_() == QtGui.QDialog.Accepted:
 			if self.set_preferences.Plate_List.currentItem() != None:
 				plate = self.set_preferences.Select_Plate()
-				self.webView.load(QtCore.QUrl.fromLocalFile(sys._MEIPASS + '/' + plate))
+				self.webView.load(QtCore.QUrl.fromLocalFile(QtCore.QDir.currentPath() + '/Plate Layouts/' + plate))
 			if self.set_preferences.Controls_Toggle.isChecked():
 				self.Set_Negative_Control.show()
 				self.Set_Positive_Control.show()
@@ -935,7 +935,7 @@ class Preferences(QtGui.QDialog, Ui_Preferences):
 		self.Get_Plate_Names()
 
 	def Get_Plate_Names(self):
-		path = sys._MEIPASS + '/'
+		path = QtCore.QDir.currentPath() + '/Plate Layouts/'
 		files = os.listdir(path)
 		for file in files:
 			filename, file_ext = os.path.splitext(file)
